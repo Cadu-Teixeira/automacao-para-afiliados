@@ -1,0 +1,32 @@
+flowchart TD
+    subgraph Receber["Workflow 'Receber Lote' (webhook, roda quando chega um lote novo)"]
+        direction TB
+        COLHEITA["Colheita externa<br>(navegador / script / manual)"] -->|"POST /webhook/.../lote"| HOOK["Webhook recebe o lote"]
+        HOOK --> SECRET{"Secret valido?"}
+        SECRET -- nao --> UNAUTH["401 Unauthorized"]
+        SECRET -- sim --> DEDUP1["Dedup contra log 14 dias<br>+ estoque atual"]
+        DEDUP1 --> CLASS["Classifica categoria<br>(regex por palavra-chave)"]
+        CLASS --> QUEUE[("Fila: fonte_estoque")]
+    end
+
+    subgraph Postar["Workflow 'Promocoes' (cron, dispara no offset da fonte)"]
+        direction TB
+        CRON["Cron 180min"] --> READ["Le fila (mais antigo primeiro)<br>+ log 14 dias + datas especiais"]
+        READ --> CHOOSE2["Escolhe 1 item<br>rotacao de categoria /<br>categoria forcada"]
+        CHOOSE2 --> VALID2{"Nome + link<br>+ imagem OK?"}
+        VALID2 -- nao --> SKIP2["Nao posta<br>(fila vazia ou tudo enviado)"]
+        VALID2 -- sim --> CAPTION2["Monta legenda persuasiva"]
+        CAPTION2 --> SEND2["Envia WhatsApp<br>(executeOnce)"]
+        SEND2 --> OK2{"Envio OK?"}
+        OK2 -- sim --> REG2["Registra no log +<br>REMOVE da fila (consome)"]
+        OK2 -- nao --> ERR2["Loga erro<br>(item continua na fila)"]
+    end
+
+    QUEUE -.->|consumido por| READ
+
+    style SECRET fill:#fff3b0,stroke:#b38f00
+    style VALID2 fill:#fff3b0,stroke:#b38f00
+    style OK2 fill:#fff3b0,stroke:#b38f00
+    style SEND2 fill:#c9e6ff,stroke:#0066cc
+    style REG2 fill:#d4f7d4,stroke:#2d8f2d
+    style QUEUE fill:#f0e6ff,stroke:#7a4fd6

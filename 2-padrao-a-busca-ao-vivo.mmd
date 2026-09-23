@@ -1,0 +1,20 @@
+flowchart TD
+    T["Cron 180min (offset 0)"] --> SIGN["Montar Assinatura<br>(HMAC SHA256)"]
+    SIGN --> API["Buscar Ofertas Shopee<br>(POST GraphQL productOfferV2)"]
+    API --> FILTER["Filtrar e Classificar<br>comissao >=6% . vendas >=50<br>classifica categoria por regex"]
+    FILTER --> LOG["Buscar Log Recente<br>(14 dias, dedup)"]
+    LOG --> DATES["Buscar Datas Especiais"]
+    DATES --> COUPON["Buscar Cupom Shopee<br>(se houver um ativo)"]
+    COUPON --> CHOOSE["Escolher Produto<br>rotacao de categoria +<br>categoria forcada (se houver)"]
+    CHOOSE --> VALID{"Nome + link<br>+ imagem OK?"}
+    VALID -- nao --> SKIP["Nao posta<br>(registra motivo)"]
+    VALID -- sim --> CAPTION["Montar legenda persuasiva<br>hook + produto + preco +<br>vendidos/comissao + cupom + CTA"]
+    CAPTION --> SEND["Enviar WhatsApp<br>(executeOnce)"]
+    SEND --> OK{"Envio OK?"}
+    OK -- sim --> REG["Registrar Envio<br>(executeOnce)"]
+    OK -- nao --> ERR["Loga erro"]
+
+    style VALID fill:#fff3b0,stroke:#b38f00
+    style OK fill:#fff3b0,stroke:#b38f00
+    style SEND fill:#c9e6ff,stroke:#0066cc
+    style REG fill:#d4f7d4,stroke:#2d8f2d

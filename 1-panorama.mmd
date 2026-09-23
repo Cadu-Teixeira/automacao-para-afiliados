@@ -1,0 +1,27 @@
+flowchart LR
+    subgraph Fontes["4 fontes independentes - revezamento 45min"]
+        direction TB
+        SH["Shopee - Promocoes<br>(offset 0min)<br>busca AO VIVO na API"]
+        ML["ML - Promocoes<br>(offset 45min)<br>le da FILA ml_estoque"]
+        AM["Amazon - Promocoes<br>(offset 90min)<br>le da FILA amazon_estoque"]
+        LM["Leroy Merlin - Promocoes<br>(offset 135min)<br>le da FILA leroymerlin_estoque"]
+    end
+
+    SH --> WA["Webhook de envio<br>(wa-send, Evolution API)"]
+    ML --> WA
+    AM --> WA
+    LM --> WA
+    WA --> GRUPO(["Grupo WhatsApp<br>'Olhaqueachei'"])
+
+    DE[("datas_especiais<br>(categoria forcada em datas do calendario)")] -.-> SH
+    DE -.-> ML
+    DE -.-> AM
+    DE -.-> LM
+    CUP[("shopee_cupom_ativo<br>(cupom real anexado na legenda)")] -.-> SH
+
+    style SH fill:#ffe0b3,stroke:#cc7a00
+    style ML fill:#ffe0b3,stroke:#cc7a00
+    style AM fill:#ffe0b3,stroke:#cc7a00
+    style LM fill:#ffe0b3,stroke:#cc7a00
+    style WA fill:#c9e6ff,stroke:#0066cc
+    style GRUPO fill:#d4f7d4,stroke:#2d8f2d

@@ -1,0 +1,6 @@
+flowchart LR
+    A["1. executeOnce=true<br>nos nodes de envio/registro/remocao"] --> D["Nunca posta<br>em duplicidade"]
+    B["2. Validacao de produto completo<br>(nome + link + imagem)"] --> D
+    C["3. Grafo linear, sem ciclo<br>nenhum node aponta pra tras"] --> D
+
+    style D fill:#d4f7d4,stroke:#2d8f2d
